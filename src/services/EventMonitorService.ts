@@ -26,8 +26,8 @@ export class EventMonitorService {
   public async start(): Promise<void> {
     this.isRunning = true;
     await Promise.all([
-      this.monitorSepoliaEvents(),
-      this.monitorStarknetEvents()
+      this.monitorSepoliaEvents()
+    //   this.monitorStarknetEvents()
     ]);
   }
 
@@ -88,66 +88,666 @@ export class EventMonitorService {
     }
   }
 
-  private async monitorStarknetEvents(): Promise<void> {
-    let currentBlock = this.starknetConfig.startBlock || 
-      (await this.starknetProvider.getBlock('latest')).block_number;
+//   private async monitorStarknetEvents(): Promise<void> {
+//     let currentBlock = this.starknetConfig.startBlock || 
+//       (await this.starknetProvider.getBlock('latest')).block_number;
 
-    while (this.isRunning) {
-      try {
-        const latestBlock = (await this.starknetProvider.getBlock('latest')).block_number;
+//     while (this.isRunning) {
+//       try {
+//         const latestBlock = (await this.starknetProvider.getBlock('latest')).block_number;
 
-        if (latestBlock > currentBlock) {
-          for (const eventConfig of this.starknetEvents) {
-            // Convert eventSignature to array if it's a string
-            const eventKeys = Array.isArray(eventConfig.eventSignature) 
-              ? [eventConfig.eventSignature] // Wrap in outer array
-              : [[eventConfig.eventSignature]]; // Wrap in two arrays
+//         if (latestBlock > currentBlock) {
+//           for (const eventConfig of this.starknetEvents) {
+//             // Convert eventSignature to array if it's a string
+//             const eventKeys = Array.isArray(eventConfig.eventSignature) 
+//               ? [eventConfig.eventSignature] // Wrap in outer array
+//               : [[eventConfig.eventSignature]]; // Wrap in two arrays
 
-            const eventsResponse = await this.starknetProvider.getEvents({
-              from_block: { block_number: currentBlock },
-              to_block: { block_number: latestBlock },
-              address: this.starknetConfig.contractAddress,
-              keys: eventKeys,
-              chunk_size: 100,
-            });
+//             const eventsResponse = await this.starknetProvider.getEvents({
+//               from_block: { block_number: currentBlock },
+//               to_block: { block_number: latestBlock },
+//               address: this.starknetConfig.contractAddress,
+//               keys: eventKeys,
+//               chunk_size: 100,
+//             });
 
-            // Check if events exist and iterate over them
-            if (eventsResponse && Array.isArray(eventsResponse.events)) {
-              for (const event of eventsResponse.events) {
-                const eventData: EventData = {
-                  chainId: 0, // Starknet chain ID
-                  contractAddress: this.starknetConfig.contractAddress,
-                  eventName: eventConfig.eventName,
-                  transactionHash: event.transaction_hash,
-                  blockNumber: event.block_number,
-                  args: event.data // Will need parsing based on event structure
-                };
+//             // Check if events exist and iterate over them
+//             if (eventsResponse && Array.isArray(eventsResponse.events)) {
+//               for (const event of eventsResponse.events) {
+//                 const eventData: EventData = {
+//                   chainId: 0, // Starknet chain ID
+//                   contractAddress: this.starknetConfig.contractAddress,
+//                   eventName: eventConfig.eventName,
+//                   transactionHash: event.transaction_hash,
+//                   blockNumber: event.block_number,
+//                   args: event.data // Will need parsing based on event structure
+//                 };
 
-                try {
-                  await eventConfig.processor.processEvent(eventData);
-                  this.logger.info(`Processed ${eventConfig.eventName} Starknet event`, { eventData });
-                } catch (error) {
-                  this.logger.error(`Error processing ${eventConfig.eventName} Starknet event`, {
-                    error,
-                    eventData
-                  });
-                }
-              }
-            }
-          }
-          currentBlock = latestBlock;
-        }
+//                 try {
+//                   await eventConfig.processor.processEvent(eventData);
+//                   this.logger.info(`Processed ${eventConfig.eventName} Starknet event`, { eventData });
+//                 } catch (error) {
+//                   this.logger.error(`Error processing ${eventConfig.eventName} Starknet event`, {
+//                     error,
+//                     eventData
+//                   });
+//                 }
+//               }
+//             }
+//           }
+//           currentBlock = latestBlock;
+//         }
 
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Poll every 5 seconds
-      } catch (error) {
-        this.logger.error('Error monitoring Starknet events', { error });
-        await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds on error
-      }
-    }
-  }
+//         await new Promise(resolve => setTimeout(resolve, 5000)); // Poll every 5 seconds
+//       } catch (error) {
+//         this.logger.error('Error monitoring Starknet events', { error });
+//         await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds on error
+//       }
+//     }
+//   }
 
-  private getSepoliaAbi(): string[] {
+  private getSepoliaAbi(): any[] {
     // Add your Sepolia contract ABI here
-    return [];
+
+    return [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_callback_sender",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_ethUsdPriceFeed",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_maticUsdPriceFeed",
+				"type": "address"
+			}
+		],
+		"stateMutability": "payable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "OwnableInvalidOwner",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "OwnableUnauthorizedAccount",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "destinationChain",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "loanAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "CollateralDeposited",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "CollateralReleased",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "loanAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "destinationChain",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "interestRate",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "durationInDays",
+				"type": "uint256"
+			}
+		],
+		"name": "LoanInitiated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "collateralAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "loanAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "LoanLiquidated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "loanAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "durationInDays",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "interestRate",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "creditScore",
+				"type": "uint256"
+			}
+		],
+		"name": "LoanRequested",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "COLLATERALIZATION_RATIO",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_collateralAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "calculateLoanAmount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_loanAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "calculateRequiredCollateral",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "coverDebt",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "depositCollateral",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_collateralAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "getCollateralValue",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getEthPrice",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			}
+		],
+		"name": "getLoanDetails",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getMaticPrice",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "interestRateOracle",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			}
+		],
+		"name": "liquidateLoan",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "liquidationThreshold",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "loans",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "collateralAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "loanAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "destinationChain",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "interestRate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "creditScore",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "durationInDays",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "active",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "ltvRatio",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "pay",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			}
+		],
+		"name": "releaseCollateral",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_loanAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_destinationChain",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_durationInDays",
+				"type": "uint256"
+			}
+		],
+		"name": "requestLoan",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "riskAssessmentModule",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_riskAssessmentModule",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_interestRateOracle",
+				"type": "address"
+			}
+		],
+		"name": "setRiskManagementAddresses",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	}
+];
   }
 }
