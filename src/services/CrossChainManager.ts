@@ -24,6 +24,7 @@ export class CrossChainManager {
         durationInDays: args.durationInDays.toString(),
         creditScore: args.creditScore.toString()
       };
+      console.log(loanRequest);
 
       await this.starknetService.requestLoan(loanRequest);
       this.logger.info('Successfully processed Sepolia LoanRequested event', { eventData });

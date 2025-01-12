@@ -1,6 +1,6 @@
 // src/services/StarknetService.ts
 
-import { Provider, Contract, Account, stark, CallData } from 'starknet';
+import { Provider, Contract, Account, stark, CallData, cairo } from 'starknet';
 import { ChainCommunicator, LoanRequest, LoanFunding, LoanRepayment, LoanLiquidation } from '../types/chain';
 import { Logger } from '../utils/Logger';
 
@@ -17,8 +17,8 @@ export class StarknetService implements ChainCommunicator {
   ) {
     this.account = new Account(
       provider,
-      contractAddress,
-      privateKey
+      '0x0586dC82F475599650709d11FcFd4F98Fb31c85E82A122E1c54C092cA2deCE35',
+      '0x062059a04d340cc16c14c943d8051e9fdeec044957e8445554e619243e9b91e4'
     );
     
     this.contract = new Contract(
@@ -37,12 +37,20 @@ export class StarknetService implements ChainCommunicator {
         duration_in_days: params.durationInDays,
         credit_score: params.creditScore
       });
+      console.log(calldata);
+      console.log(this.contractAddress);
 
       const tx = await this.account.execute(
         {
           contractAddress: this.contractAddress,
           entrypoint: 'request_loan',
-          calldata
+          calldata : CallData.compile({
+            borrower: params.borrower,
+            amount: cairo.uint256(BigInt(params.amount)),
+            interest_rate: cairo.uint256(BigInt(params.interestRate)),
+            duration_in_days: cairo.uint256(BigInt(params.durationInDays)),
+            credit_score: cairo.uint256(BigInt(params.creditScore))
+          })
         }
       );
 
