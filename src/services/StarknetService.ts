@@ -1,8 +1,7 @@
-// src/services/StarknetService.ts
-
 import { Provider, Contract, Account, stark, CallData, cairo } from 'starknet';
 import { ChainCommunicator, LoanRequest, LoanFunding, LoanRepayment, LoanLiquidation } from '../types/chain';
 import { Logger } from '../utils/Logger';
+import { STARKNET_CONTRACT_ABI } from '../config/contracts';
 
 export class StarknetService implements ChainCommunicator {
   private contract: Contract;
@@ -15,44 +14,34 @@ export class StarknetService implements ChainCommunicator {
     private privateKey: string,
     private logger: Logger
   ) {
+    console.log("provider(with this):",this.provider);
+    console.log("contractAddress(withoy this):",contractAddress);
+    console.log("contractAbi(with this):",this.contractAddress);
+    // Initialize account
     this.account = new Account(
-      provider,
+      this.provider,
       '0x0586dC82F475599650709d11FcFd4F98Fb31c85E82A122E1c54C092cA2deCE35',
       '0x062059a04d340cc16c14c943d8051e9fdeec044957e8445554e619243e9b91e4'
     );
     
+    // Initialize contract with account
     this.contract = new Contract(
-      contractAbi,
-      contractAddress,
-      provider
+      STARKNET_CONTRACT_ABI,
+      this.contractAddress,
+      this.account
     );
   }
 
   async requestLoan(params: LoanRequest): Promise<string> {
+    console.log("params:",params);
     try {
-      const calldata = CallData.compile({
-        borrower: params.borrower,
-        amount: params.amount,
-        interest_rate: params.interestRate,
-        duration_in_days: params.durationInDays,
-        credit_score: params.creditScore
-      });
-      console.log(calldata);
-      console.log(this.contractAddress);
-
-      const tx = await this.account.execute(
-        {
-          contractAddress: this.contractAddress,
-          entrypoint: 'request_loan',
-          calldata : CallData.compile({
-            borrower: params.borrower,
-            amount: cairo.uint256(BigInt(params.amount)),
-            interest_rate: cairo.uint256(BigInt(params.interestRate)),
-            duration_in_days: cairo.uint256(BigInt(params.durationInDays)),
-            credit_score: cairo.uint256(BigInt(params.creditScore))
-          })
-        }
-      );
+      const tx = await this.contract.invoke("request_loan", [
+        params.borrower,
+        params.amount,
+        params.interestRate,
+        params.durationInDays,
+        params.creditScore
+      ]);
 
       this.logger.info('Starknet: Loan request transaction sent', {
         hash: tx.transaction_hash,
@@ -69,17 +58,9 @@ export class StarknetService implements ChainCommunicator {
 
   async fundLoan(params: LoanFunding): Promise<string> {
     try {
-      const calldata = CallData.compile({
-        borrower: params.borrower
-      });
-
-      const tx = await this.account.execute(
-        {
-          contractAddress: this.contractAddress,
-          entrypoint: 'fund_loan',
-          calldata
-        }
-      );
+      const tx = await this.contract.invoke("fund_loan", [
+        params.borrower
+      ]);
 
       this.logger.info('Starknet: Loan funding transaction sent', {
         hash: tx.transaction_hash,
@@ -96,17 +77,9 @@ export class StarknetService implements ChainCommunicator {
 
   async repayLoan(params: LoanRepayment): Promise<string> {
     try {
-      const calldata = CallData.compile({
-        amount: params.amount
-      });
-
-      const tx = await this.account.execute(
-        {
-          contractAddress: this.contractAddress,
-          entrypoint: 'repay_loan',
-          calldata
-        }
-      );
+      const tx = await this.contract.invoke("repay_loan", [
+        params.amount
+      ]);
 
       this.logger.info('Starknet: Loan repayment transaction sent', {
         hash: tx.transaction_hash,
@@ -123,17 +96,9 @@ export class StarknetService implements ChainCommunicator {
 
   async liquidateLoan(params: LoanLiquidation): Promise<string> {
     try {
-      const calldata = CallData.compile({
-        borrower: params.borrower
-      });
-
-      const tx = await this.account.execute(
-        {
-          contractAddress: this.contractAddress,
-          entrypoint: 'liquidate_loan',
-          calldata
-        }
-      );
+      const tx = await this.contract.invoke("liquidate_loan", [
+        params.borrower
+      ]);
 
       this.logger.info('Starknet: Loan liquidation transaction sent', {
         hash: tx.transaction_hash,

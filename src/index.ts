@@ -2,7 +2,7 @@
 
 import { config } from 'dotenv';
 import { ethers } from 'ethers';
-import { Provider } from 'starknet';
+import { Provider, RpcProvider } from 'starknet';
 import { EventMonitorService } from './services/EventMonitorService';
 import { StarknetService } from './services/StarknetService';
 import { CrossChainManager } from './services/CrossChainManager';
@@ -25,7 +25,10 @@ async function main() {
 
   // Initialize providers
   const sepoliaProvider = new ethers.providers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
-  const starknetProvider = new Provider({ nodeUrl: process.env.STARKNET_RPC_URL! });
+  const starknetProvider = new RpcProvider({
+    nodeUrl:
+      "https://starknet-sepolia.infura.io/v3/a4f144f3378f4e70821b6f28a428e429",
+  });
 
   // Initialize wallets
   const sepoliaWallet = new ethers.Wallet(process.env.SEPOLIA_PRIVATE_KEY!, sepoliaProvider);
