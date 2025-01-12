@@ -43,6 +43,7 @@ export class LoanRepaidProcessor implements EventProcessor {
   ) {}
 
   async processEvent(eventData: EventData): Promise<void> {
+    console.log("eventData(with this): inside LoanRepaidProcessor",eventData);
     try {
       await this.crossChainManager.handleStarknetLoanRepaid(eventData);
     } catch (error) {

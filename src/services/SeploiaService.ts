@@ -3,6 +3,7 @@
 import { ethers } from 'ethers';
 import { ChainCommunicator, LoanRequest, LoanFunding, LoanRepayment, LoanLiquidation } from '../types/chain';
 import { Logger } from '../utils/Logger';
+import { SEPOLIA_CONTRACT_ABI } from '../config/contracts';
 
 export class SepoliaService implements ChainCommunicator {
   private contract: ethers.Contract;
@@ -14,10 +15,14 @@ export class SepoliaService implements ChainCommunicator {
     private wallet: ethers.Wallet,
     private logger: Logger
   ) {
+    //Create a signer
+
+
+    
     this.contract = new ethers.Contract(
       contractAddress,
-      contractAbi,
-      wallet.connect(provider)
+      SEPOLIA_CONTRACT_ABI,
+      this.wallet.connect(provider)
     );
   }
 
@@ -65,8 +70,10 @@ export class SepoliaService implements ChainCommunicator {
   }
 
   async repayLoan(params: LoanRepayment): Promise<string> {
+    console.log("params(with this):",params);
     try {
       const tx = await this.contract.releaseCollateral(
+        
         params.borrower,
         {
           gasLimit: 500000

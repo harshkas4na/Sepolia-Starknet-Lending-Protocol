@@ -32,6 +32,7 @@ async function main() {
 
   // Initialize wallets
   const sepoliaWallet = new ethers.Wallet(process.env.SEPOLIA_PRIVATE_KEY!, sepoliaProvider);
+  console.log("sepoliaWallet(with this):",sepoliaWallet);
 
   // Initialize chain services
 const sepoliaService = new SepoliaService(

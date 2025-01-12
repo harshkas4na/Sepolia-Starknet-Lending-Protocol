@@ -14,14 +14,14 @@ export class StarknetService implements ChainCommunicator {
     private privateKey: string,
     private logger: Logger
   ) {
-    console.log("provider(with this):",this.provider);
-    console.log("contractAddress(withoy this):",contractAddress);
-    console.log("contractAbi(with this):",this.contractAddress);
+    
+    
+    
     // Initialize account
     this.account = new Account(
       this.provider,
       '0x0586dC82F475599650709d11FcFd4F98Fb31c85E82A122E1c54C092cA2deCE35',
-      '0x062059a04d340cc16c14c943d8051e9fdeec044957e8445554e619243e9b91e4'
+      '0x05ab47023714664886fb947d3b3d34fd4822678f15e8e96d395ac3c3dff7c024'
     );
     
     // Initialize contract with account
@@ -33,14 +33,20 @@ export class StarknetService implements ChainCommunicator {
   }
 
   async requestLoan(params: LoanRequest): Promise<string> {
-    console.log("params:",params);
+    const borrower_eth = '0x941b727Ad8ACF020558Ce58CD7Cb65b48B958DB1';
+    const borrower = params.borrower;
+    const amount = cairo.uint256(BigInt(params.amount));
+    const interestRate = cairo.uint256(BigInt(params.interestRate));
+    const durationInDays = cairo.uint256(BigInt(params.durationInDays));
+    const creditScore = cairo.uint256(BigInt(params.creditScore));
     try {
       const tx = await this.contract.invoke("request_loan", [
-        params.borrower,
-        params.amount,
-        params.interestRate,
-        params.durationInDays,
-        params.creditScore
+        borrower_eth,
+        borrower,
+        amount,
+        interestRate,
+        durationInDays,
+        creditScore
       ]);
 
       this.logger.info('Starknet: Loan request transaction sent', {

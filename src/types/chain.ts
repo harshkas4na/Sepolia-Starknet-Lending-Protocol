@@ -1,6 +1,7 @@
 // src/types/chain.ts
 
 export interface LoanRequest {
+    borrower_eth: string;
     borrower: string;
     amount: string;
     interestRate: string;
@@ -14,7 +15,7 @@ export interface LoanRequest {
   
   export interface LoanRepayment {
     borrower: string;
-    amount: string;
+    amount: number;
   }
   
   export interface LoanLiquidation {
