@@ -79,12 +79,12 @@ const sepoliaService = new SepoliaService(
   const sepoliaEvents: EventConfig[] = [
     {
       eventName: 'LoanRequested',
-      eventSignature: 'LoanRequested(address,uint256,uint256,uint256,uint256)',
+      eventSignature: 'LoanRequested(string,uint256,uint256,uint256,uint256)',
       processor: loanRequestedProcessor
     },
     {
       eventName: 'LoanInitiated',
-      eventSignature: 'LoanInitiated(address,uint256,uint256,uint256,uint256)',
+      eventSignature: 'LoanInitiated(string,uint256,uint256,uint256,uint256)',
       processor: loanInitiatedProcessor
     }
   ];
